@@ -1,0 +1,24 @@
+{
+  "name": "chat_application",
+  "version": "1.0.0",
+  "description": "Nodejs + Socket.io",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ntt261298/Chat_Application.git"
+  },
+  "author": "truongnt",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ntt261298/Chat_Application/issues"
+  },
+  "homepage": "https://github.com/ntt261298/Chat_Application#readme",
+  "dependencies": {
+    "ejs": "^2.5.7",
+    "express": "^4.16.3",
+    "socket.io": "^2.0.4"
+  }
+}
