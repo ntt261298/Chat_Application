@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+  <style>
+  .center_div{
+    margin: 0 auto;
+    width: 70%;
+    padding-top: 80px;
+  }
+  .btn{
+    width: 100px;  
+  }
+  </style>
+  <title>Signup</title>
+</head>
+<body>
+  <div class="container">
+    <div class="col-sm-5 center_div text-center">
+      <h1 class="fa fa-sign-in">Signup</h1>
+      <form action="/signup" method="post">
+        <label>Username:</label>
+        <input type="text" class="form-control" name="username" placeholder="Username">
+        <label>Password:</label>
+        <input type="password" class="form-control" name="password" placeholder="Password">
+        </br>
+        <button class="btn btn-default" type="submit">Signup</button>
+        <p>Already have an acount?<a href="/login">Login</a></p>
+        <p>Or go <a href="/home">Home</a></p>
+      </form>
+    </div>
+  </div>
+</body>
+</html>
