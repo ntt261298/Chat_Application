@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+  <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -23,6 +23,10 @@
   <div class="container">
     <div class="col-sm-5 center_div text-center">
       <h1><span class="fa fa-sign-in">Login</span></h1>
+      <% if (message.length > 0) { %>
+        <div class="alert alert-danger"><%= message %></div>
+      <% } %>
+
       <form action="/login" method="post">
         <label>Username: </label>
         <input type="text" class="form-control" name="username" placeholder="Username">
