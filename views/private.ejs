@@ -9,15 +9,63 @@
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
   <title>Private</title>
   <style>
-    btn{
+    #greeting{
+      float: right;
+    }
+    .user{
+      border: 1px solid black;
+      min-height: 200px;
+    }
+    .chatToAll{
+      margin-top: 15px;
+      background-color: #dbd2db;
+    }
+    .input{
+      margin-top: 15px;
+    }
+    .type{
+      width: 100%;
+    }
+    .send{
       width: 100px;
+      padding: 0px;
+      height: 32px;
     }
   </style>
 </head>
 <body>
-  <div class="text-center">
-    <h1>Welcome to my private webpage</h1>
-    <button type="button" name="button" class="btn btn-default"><a href="/logout">Logout</a></button>
+  <div class="container">
+    <div class="text-center">
+      <h1>Welcome to my Chat box</h1>
+    </div>
+    <div class="row">
+      <div class="col-xs-6 col-md-9"></div>
+      <div class="col-xs-4 col-md-2">
+        <p id="greeting">Hi <%= user.username %></p>
+      </div>
+      <div class="col-xs-2 col-md-1">
+        <a href="/logout">logout</a>
+      </div>
+    </div>
+    <div class="row">
+      <div class="user col-xs-6 col-md-3">
+        <p><strong>Users online</strong></p>
+
+      </div>
+    </div>
+    <div class="row">
+      <div class="chatToAll col-xs-12 col-md-12" style="height:200px; padding:15px;">
+
+      </div>
+    </div>
+    <div class="row input">
+      <div class="col-xs-10 col-md-10">
+        <input type="text" name="content" class="type">
+      </div>
+      <div class="col-xs-2 col-md-2">
+        <button class="btn btn-default send" type="submit">Send</button>
+      </div>
+    </div>
   </div>
 </body>
 </html>

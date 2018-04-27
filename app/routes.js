@@ -21,7 +21,9 @@ module.exports = function(app, passport) {
     failureFlash : true
   }));
   app.get('/private', isLoggedIn, function(req, res) {
-      res.render('private');
+      res.render('private', {
+        user: req.user //Truyen doi tuong user cho private.ejs
+      });
     });
   app.get('/logout', function(req, res){
     req.logout();

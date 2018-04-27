@@ -1,4 +1,4 @@
-var express = require('express');
+  var express = require('express');
 var http = require('http');
 var app = express();
 var pg = require('pg');
@@ -10,7 +10,7 @@ var flash = require('connect-flash');
 var configDB = require('./config/db.js');
 var routes = require('./app/routes');
 require('./config/passport')(passport);
-
+var io = require('socket.io')(app);
 app.set('view engine', 'ejs');
 app.set('views', './views');
 
@@ -28,4 +28,5 @@ app.use(passport.session());
 app.use(flash());
 require('./app/routes.js')(app, passport);
 
-app.listen(8080, () => console.log('Server da khoi dong tren port 8080'));
+app.listen(process.env.PORT || 8080, () => console.log('Server da khoi dong'));
+reuire('./app/socket.js')(io);
