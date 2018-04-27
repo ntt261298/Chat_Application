@@ -8,21 +8,24 @@ var cookieParser = require('cookie-parser');// sử dụng thông tin từ cooki
 var session = require('express-session');
 var flash = require('connect-flash');
 var configDB = require('./config/db.js');
+var routes = require('./app/routes');
 require('./config/passport')(passport);
+
 app.set('view engine', 'ejs');
 app.set('views', './views');
 
 app.use(express.static('public'));
 
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(passport.initialize());
+app.use(bodyParser.json());
 app.use(session({
   secret: 'ntt261298',
   resave: true,
   saveUninitialized: true,
 }));
+app.use(passport.initialize());
 app.use(passport.session());
 app.use(flash());
-
 require('./app/routes.js')(app, passport);
+
 app.listen(8080, () => console.log('Server da khoi dong tren port 8080'));

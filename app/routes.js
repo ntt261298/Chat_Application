@@ -1,4 +1,6 @@
-module.exports = function(app, passport){
+
+
+module.exports = function(app, passport) {
   app.get('/home', function(req, res){
     res.render('home');
   });
@@ -19,14 +21,15 @@ module.exports = function(app, passport){
     failureFlash : true
   }));
   app.get('/private', isLoggedIn, function(req, res) {
-        res.render('private.ejs', {
-            user : req.user // truyền đối tượng user cho profile.ejs để hiển thị lên view
-        });
+      res.render('private');
     });
-}
-
-function isLoggedIn(req, res, next) {
+  app.get('/logout', function(req, res){
+    req.logout();
+    res.redirect('/login');
+  })
+  function isLoggedIn(req, res, next){
     if (req.isAuthenticated())
         return next();
     res.redirect('/home');
-}
+  }
+};

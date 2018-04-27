@@ -1,0 +1,14 @@
+[
+  {
+    "usr" : "user1",
+    "pwd": "password1"
+  },
+  {
+    "usr" : "user2",
+    "pwd": "password2"
+  },
+  {
+    "usr" : "user3",
+    "pwd": "password3"
+  }
+]
