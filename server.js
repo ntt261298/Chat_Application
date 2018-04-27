@@ -10,7 +10,7 @@ var flash = require('connect-flash');
 var configDB = require('./config/db.js');
 var routes = require('./app/routes');
 require('./config/passport')(passport);
-var io = require('socket.io')(app);
+//var io = require('socket.io')(app);
 app.set('view engine', 'ejs');
 app.set('views', './views');
 
@@ -29,4 +29,4 @@ app.use(flash());
 require('./app/routes.js')(app, passport);
 
 app.listen(process.env.PORT || 8080, () => console.log('Server da khoi dong'));
-reuire('./app/socket.js')(io);
+//require('./app/socket.js')(io);
