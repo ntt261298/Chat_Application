@@ -1,12 +1,39 @@
-<!DOCTYPE html>
+  <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+  <script src="/socket.io/socket.io.js"></script>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+  <script>
+    var socket = io("http://localhost:8080");
+    var from = "<%= user.username %>";
+    socket.emit("clientSendUser", from);
+    socket.on("serverSendListUser", listUsers => {
+      $("#users").html("");
+      for(var i = 0; i < listUsers.length; i++){
+        var user = listUsers[i];
+        $("#users").append('<p id="" + i>' + listUsers[i] + '</p>')
+      }
+    })
+    socket.on("serverSendMessage", (from, msg)=> {
+      $("#frame").append('<p>' + from + ': ' + msg + '</p>');
+    })
+    $(document).ready(function(){
+      $("#sendText").click(() => {
+        var message = $("#textContent").val();
+        if(message != ''){
+          socket.emit("chatToAll", from,  message);
+        }
+      })
+      $("#logout").click(() => {
+        socket.emit("logout", from);
+      })
+    })
+  </script>
   <title>Private</title>
   <style>
     #greeting{
@@ -22,6 +49,7 @@
     }
     .input{
       margin-top: 15px;
+      margin-bottom: 10px;
     }
     .type{
       width: 100%;
@@ -44,26 +72,26 @@
         <p id="greeting">Hi <%= user.username %></p>
       </div>
       <div class="col-xs-2 col-md-1">
-        <a href="/logout">logout</a>
+        <a href="/logout" id="logout">logout</a>
       </div>
     </div>
     <div class="row">
       <div class="user col-xs-6 col-md-3">
         <p><strong>Users online</strong></p>
-
+        <div id="users"></div>
       </div>
     </div>
     <div class="row">
-      <div class="chatToAll col-xs-12 col-md-12" style="height:200px; padding:15px;">
+      <div class="chatToAll col-xs-12 col-md-12" id="frame" style="min-height:200px; padding:15px;">
 
       </div>
     </div>
     <div class="row input">
       <div class="col-xs-10 col-md-10">
-        <input type="text" name="content" class="type">
+        <input type="text" name="content" autocomplete="off" class="type" id="textContent">
       </div>
       <div class="col-xs-2 col-md-2">
-        <button class="btn btn-default send" type="submit">Send</button>
+        <button class="btn btn-default send" id="sendText" type="submit">Send</button>
       </div>
     </div>
   </div>

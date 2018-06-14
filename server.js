@@ -1,6 +1,7 @@
-  var express = require('express');
-var http = require('http');
+var express = require('express');
 var app = express();
+var server = require('http').Server(app);
+var io = require('socket.io')(server);
 var pg = require('pg');
 var passport = require('passport');
 var bodyParser = require('body-parser');// lấy thông tin từ form người dùng
@@ -28,5 +29,5 @@ app.use(passport.session());
 app.use(flash());
 require('./app/routes.js')(app, passport);
 
-app.listen(process.env.PORT || 8080, () => console.log('Server da khoi dong'));
-//require('./app/socket.js')(io);
+server.listen(process.env.PORT || 8080, () => console.log('Server da khoi dong'));
+require('./app/socketServer.js')(io);

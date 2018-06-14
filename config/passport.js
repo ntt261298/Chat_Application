@@ -26,7 +26,7 @@ module.exports = function(passport){
     (req, username, password, done) => {
         User.findOne({where: {username: username}}).then(user => {
           if(user)
-            return done(null, false, req.flash('signupMessage', "Username is existed."));
+            return done(null, false, req.flash('signupMessage', "Username existed."));
           else{
             User.create({
               username : username,

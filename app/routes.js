@@ -1,6 +1,9 @@
 
 
 module.exports = function(app, passport) {
+  app.get('/', (req,res) => {
+    res.send("Hello!");
+  })
   app.get('/home', function(req, res){
     res.render('home');
   });
