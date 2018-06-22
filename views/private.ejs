@@ -1,4 +1,4 @@
-  <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -12,15 +12,21 @@
     var socket = io("http://localhost:8080");
     var from = "<%= user.username %>";
     socket.emit("clientSendUser", from);
+    socket.on("serverSendPublicMsg", (msg) => {
+      $("#frame").append('<p>' + msg.from + ': ' + msg.msg + '</p>');
+    })
     socket.on("serverSendListUser", listUsers => {
       $("#users").html("");
       for(var i = 0; i < listUsers.length; i++){
-        var user = listUsers[i];
-        $("#users").append('<p id="" + i>' + listUsers[i] + '</p>')
+        var flag = listUsers[i];
+        $("#users").append('<li>' + listUsers[i] + '</li>');
       }
     })
     socket.on("serverSendMessage", (from, msg)=> {
       $("#frame").append('<p>' + from + ': ' + msg + '</p>');
+      //Scrolling messages
+      var textdiv = $("#frame");
+      textdiv.scrollTop(textdiv.prop('scrollHeight'));
     })
     $(document).ready(function(){
       $("#sendText").click(() => {
@@ -29,10 +35,9 @@
           socket.emit("chatToAll", from,  message);
         }
       })
-      $("#logout").click(() => {
-        socket.emit("logout", from);
-      })
     })
+
+
   </script>
   <title>Private</title>
   <style>
@@ -59,6 +64,15 @@
       padding: 0px;
       height: 32px;
     }
+    li{
+      list-style-type: none;
+      height: 30px;
+    }
+    li:hover{
+      color: #4286f4;
+      cursor: pointer;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
@@ -81,8 +95,8 @@
         <div id="users"></div>
       </div>
     </div>
-    <div class="row">
-      <div class="chatToAll col-xs-12 col-md-12" id="frame" style="min-height:200px; padding:15px;">
+    <div class="row" id="chatDiv">
+      <div class="chatToAll col-xs-12 col-md-12" id="frame" style="height:200px; padding:15px; overflow-y:auto;">
 
       </div>
     </div>
