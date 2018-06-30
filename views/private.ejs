@@ -5,29 +5,54 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+  <link rel="shortcut icon" HREF="favicon.ico">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.1.0/css/all.css" integrity="sha384-lKuwvrZot6UHsBSfcMvOkWwlCMgc0TaWr+30HWe3a4ltaBwTZhyTEggF5tJv8tbt" crossorigin="anonymous">
   <script src="/socket.io/socket.io.js"></script>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
   <script>
     var socket = io("http://localhost:8080");
     var from = "<%= user.username %>";
+    var listFrameChat = [];
+    var partnerList = [];
+    var listQueue = [];
+    var count = 0;
+
     socket.emit("clientSendUser", from);
     socket.on("serverSendPublicMsg", (msg) => {
       $("#frame").append('<p>' + msg.from + ': ' + msg.msg + '</p>');
     })
+    // Display list of users online
     socket.on("serverSendListUser", listUsers => {
       $("#users").html("");
       for(var i = 0; i < listUsers.length; i++){
-        var flag = listUsers[i];
-        $("#users").append('<li>' + listUsers[i] + '</li>');
+        $("#users").append('<li id="' + listUsers[i] +'">' + listUsers[i] + '</li>');
+        //Scrolling messages
+        var textDivUser = $("#users");
+        textDivUser.scrollTop(textDivUser.prop('scrollHeight'));
+        let y = $("#" + listUsers[i]);
+        $("#" + listUsers[i]).click(() => {
+          let partner = y.text();
+          if(partner == from) return;
+          console.log(partner);
+          if(!($("#" + from + "-" + partner).length)){
+            var containerWidth = $('.container').width();
+            var userFrame = $('.user').width();
+            var maxFrameChat = (containerWidth - userFrame-100)/225;
+            var max = maxFrameChat;
+            socket.emit("newFrame", from, partner, max);
+          }
+        })
       }
     })
+    // Display public message
     socket.on("serverSendMessage", (from, msg)=> {
       $("#frame").append('<p>' + from + ': ' + msg + '</p>');
       //Scrolling messages
       var textdiv = $("#frame");
       textdiv.scrollTop(textdiv.prop('scrollHeight'));
     })
+
     $(document).ready(function(){
       $("#sendText").click(() => {
         var message = $("#textContent").val();
@@ -35,9 +60,105 @@
           socket.emit("chatToAll", from,  message);
         }
       })
+      // Display list of frame chat inbox
+      socket.on("listFrameChat", (from, partner, func, max) => {
+        var id = from + "-" + partner;
+        console.log(func);
+        if((listFrameChat.indexOf(id) >= 0) && (func == "push")) return;
+        if(func == "close"){
+          listFrameChat.splice(listFrameChat.indexOf(id), 1);
+            console.dir("listFrameChat");
+          partnerList.splice(partnerList.indexOf(partner), 1);
+          count--;
+        }
+        if(func == "push"){
+          listFrameChat.push(id);
+          partnerList.push(partner);
+          count++;
+        }
+        if(count <= max){
+          $("#queue").attr('style','display: none !important;');
+          $("#boxQueue").html("");
+        }
+        if(count > max){
+          $("#queue").attr('style','display: block !important;');
+          $("#boxQueue").html("");
+          for(i = 0; (i < (count - max)) && (i>=0); i++){
+            listQueue.push(listFrameChat[i]);
+            $("#boxQueue").append('<li id="li' + listFrameChat[i] + '"><span class="toImpress" id="queue' + i + '">' + listFrameChat[i] + '</span>' + "<button type='button' class='close' aria-label='Close' style='height: 27px;'>"+
+            "<span id='close" + listFrameChat[i] + "' aria-hidden='true'>&times;</span></button></<li></li>");
+            let x = $("#queue" + i);
+            $("#queue" + i).click(() => {
+              var fromQueue = x.text();
+              console.log(fromQueue);
+              count--;//list chat length does'nt change
+              partnerList.splice(listFrameChat.indexOf(fromQueue), 1);
+              listFrameChat.splice(listFrameChat.indexOf(fromQueue), 1);
+              socket.emit("fromQueue", from, fromQueue, max);
+            })
+          }
+        }
+        $("#frameInbox").html('');
+        for(let i = (count-1); (i >= (count - max)) && (i>=0); i--){
+          $("#frameInbox").append(function(){
+            return "<div style='width: 225px;height: 200px;border: 1px solid black;float: left;margin-right: 10px;'>" +
+                      "<div style='height: 30px;border-bottom: 1px solid black;'>"+
+                        "<span><strong>"+ partnerList[i] +"</strong></span>" +
+                        "<button type='button' class='close' aria-label='Close' style='height: 27px;'>"+
+                        "<span id='close" + listFrameChat[i] + "' aria-hidden='true'>&times;</span></button>"+
+                      "</div>"+
+                      "<div style='overflow-y:auto;height: 138px;border-bottom: 1px solid black;' id='"+ listFrameChat[i] +"'></div>"+
+                      "<div><input id='msg" + listFrameChat[i]+ "' type='text' name='content' autocomplete='off' placeholder='text here'></div></div>"
+          })
+          // Display message in database
+          socket.emit("clientNeedMessage", from, listFrameChat[i]);
+          $("#msg" + listFrameChat[i]).keypress((event) => {
+            var keycode = (event.keyCode ? event.keyCode : event.which);
+            if(keycode == '13'){
+              var newMessage = $("#msg" + listFrameChat[i]).val();
+              console.log(newMessage);
+              if(newMessage != ''){
+                socket.emit("chatInbox", from, partnerList[i], listFrameChat[i], newMessage);
+              }
+              $("#msg" + listFrameChat[i]).val("");//The text in the input is overwritten to nothing.
+              event.preventDefault();//Prevents the default action from happening.
+            }
+          })
+
+        }
+        for(let i = 0; i < count; i++){
+          $("#close" + listFrameChat[i]).click(() => {
+            console.log("test from client");
+            socket.emit("closeFrame", from, partnerList[i], max);
+          })
+        }
+      })
+      socket.on("serverSendPrivateMsg", (from, to, msg, id) => {
+        console.log(id);
+        $("#" + id).append('<p>' + from + ': ' + msg + '</p>');
+        //Scrolling messages
+        let textDivSend = $("#" + id);
+        textDivSend.scrollTop(textDivSend.prop('scrollHeight'));
+        $("#" + to + "-" + from).append('<p>' + from + ': ' + msg+ '</p>');
+        //Scrolling messages
+        var textDivReceive = $("#" + to + "-" + from);
+        textDivReceive.scrollTop(textDivReceive.prop('scrollHeight'));
+      })
+      socket.on("serverSendMsg", (from, msg, id) => {
+        console.log(msg);
+        $("#" + id).append('<p>' + from + ': ' + msg + '</p>');
+      });
+      socket.on("receiveSendMsg", (from, msg, to) => {
+        let id = to + "-" + from;
+        if(listQueue.indexOf(id) >= 0){
+          $("#li" + id).css("background-color", "red");
+        }
+        $("#" + id).append('<p>' + from + ': ' + msg + '</p>');
+      })
+      $("#queueBtn").click(() => {
+        $("#boxQueue").fadeToggle();
+      })
     })
-
-
   </script>
   <title>Private</title>
   <style>
@@ -46,7 +167,11 @@
     }
     .user{
       border: 1px solid black;
-      min-height: 200px;
+      height: 200px;
+      overflow-y:auto;
+    }
+    #user{
+      height: 200px;
     }
     .chatToAll{
       margin-top: 15px;
@@ -73,6 +198,27 @@
       cursor: pointer;
       font-weight: bold;
     }
+    #queue{
+      width: 100px;
+      float: right;
+      display: none;
+      max-height: 200px;
+    }
+    #boxQueue{
+      width: 100px;
+      min-height: 50px;
+      max-height: 200px;
+      border: 0.5px solid #bdc7de;
+      display: none;
+    }
+    #queueBtn:hover{
+      cursor: pointer;
+    }
+    .toImpress:hover{
+      color: #4286f4;
+      cursor: pointer;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
@@ -81,30 +227,55 @@
       <h1>Welcome to my Chat box</h1>
     </div>
     <div class="row">
-      <div class="col-xs-6 col-md-9"></div>
-      <div class="col-xs-4 col-md-2">
+      <div class="col-6 col-md-9"></div>
+      <div class="col-4 col-md-2">
         <p id="greeting">Hi <%= user.username %></p>
       </div>
-      <div class="col-xs-2 col-md-1">
+      <div class="col-2 col-md-1">
         <a href="/logout" id="logout">logout</a>
       </div>
     </div>
     <div class="row">
-      <div class="user col-xs-6 col-md-3">
+      <div class="user col-4 col-md-3">
         <p><strong>Users online</strong></p>
         <div id="users"></div>
+      </div>
+      <div class="col-8 col-md-9">
+        <div id="frameInbox"></div>
+        <!-- <% for(var i = 0; i < 1; i++){%>
+          <div class="roomChat">
+            <div id="roomID">
+              <button type="button" class="close" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div id="inbox"></div>
+            <div>
+              <input type="text" name="content" autocomplete="off" placeholder="text here">
+            </div>
+          </div>
+        <%}%> -->
+        <div id="queue">
+          <div>
+            <button type="button" name="button" id="queueBtn">
+              <i class="fas fa-envelope"></i>
+            </button>
+          </div>
+          <div id="boxQueue">
+
+          </div>
+        </div>
       </div>
     </div>
     <div class="row" id="chatDiv">
       <div class="chatToAll col-xs-12 col-md-12" id="frame" style="height:200px; padding:15px; overflow-y:auto;">
-
       </div>
     </div>
     <div class="row input">
-      <div class="col-xs-10 col-md-10">
+      <div class="col-md-10">
         <input type="text" name="content" autocomplete="off" class="type" id="textContent">
       </div>
-      <div class="col-xs-2 col-md-2">
+      <div class="col-md-2">
         <button class="btn btn-default send" id="sendText" type="submit">Send</button>
       </div>
     </div>
