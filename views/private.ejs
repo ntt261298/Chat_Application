@@ -59,6 +59,8 @@
         if(message != ''){
           socket.emit("chatToAll", from,  message);
         }
+        $("#textContent").val("");//The text in the input is overwritten to nothing.
+        event.preventDefault();//Prevents the default action from happening.
       })
       // Display list of frame chat inbox
       socket.on("listFrameChat", (from, partner, func, max) => {
