@@ -20,7 +20,7 @@
 
     socket.emit("clientSendUser", from);
     socket.on("serverSendPublicMsg", (msg) => {
-      $("#frame").append('<p>' + msg.from + ': ' + msg.msg + '</p>');
+      $("#frame").append('<div style="margin: 1px;display: flex;flex-direction: row">' + msg.from + ': ' + '<div style="flex-direction: column;background: #75a3ef;color:white;border-radius: 12px;padding: 0 10px 0 10px;">'+ msg.msg + '</div></div>');
     })
     // Display list of users online
     socket.on("serverSendListUser", listUsers => {
@@ -47,7 +47,7 @@
     })
     // Display public message
     socket.on("serverSendMessage", (from, msg)=> {
-      $("#frame").append('<p>' + from + ': ' + msg + '</p>');
+      $("#frame").append('<div style="margin: 1px;display: flex;flex-direction: row">' + from + ': ' + '<div style="flex-direction: column;background: #75a3ef;color:white;border-radius: 12px;padding: 0 10px 0 10px;">'+ msg + '</div></div>');
       //Scrolling messages
       var textdiv = $("#frame");
       textdiv.scrollTop(textdiv.prop('scrollHeight'));
@@ -104,7 +104,7 @@
         for(let i = (count-1); (i >= (count - max)) && (i>=0); i--){
           $("#frameInbox").append(function(){
             return "<div style='width: 225px;height: 200px;border: 1px solid black;float: left;margin-right: 10px;'>" +
-                      "<div style='height: 30px;border-bottom: 1px solid black;'>"+
+                      "<div style='height: 30px;border-bottom: 1px solid black;background-color: #75a3ef; color: white;'>"+
                         "<span><strong>"+ partnerList[i] +"</strong></span>" +
                         "<button type='button' class='close' aria-label='Close' style='height: 27px;'>"+
                         "<span id='close" + listFrameChat[i] + "' aria-hidden='true'>&times;</span></button>"+
@@ -137,25 +137,30 @@
       })
       socket.on("serverSendPrivateMsg", (from, to, msg, id) => {
         console.log(id);
-        $("#" + id).append('<p>' + from + ': ' + msg + '</p>');
+        if(from == "<%= user.username %>"){
+          $("#" + id).append('<div style="margin: 1px;display: flex;flex-direction: row-reverse"><div style="flex-direction: column;background: #75a3ef;color:white;border-radius: 12px;padding: 0 10px 0 10px;">'+ msg + '</div></div>');
+          $("#" + to + "-" + from).append('<div style="margin:1px;display: flex;flex-direction: row-reverse"><div style="flex-direction: column;background: #75a3ef;color:white;border-radius: 12px;padding: 0 10px 0 10px;">'+ msg + '</div></div>');
+        }
+        else {
+          $("#" + id).append('<div style="margin: 1px;display: flex;flex-direction: row">' + from + ' <div style="flex-direction: column;background: #d5dce8;border-radius: 12px;padding: 0 10px 0 10px;">'+ msg + '</div></div>');
+          $("#" + to + "-" + from).append('<div style="margin:1px;display: flex;flex-direction: row">' + from + ' <div style="flex-direction: column;background: #d5dce8;border-radius: 12px;padding: 0 10px 0 10px;">'+ msg + '</div></div>');
+        }
         //Scrolling messages
         let textDivSend = $("#" + id);
         textDivSend.scrollTop(textDivSend.prop('scrollHeight'));
-        $("#" + to + "-" + from).append('<p>' + from + ': ' + msg+ '</p>');
-        //Scrolling messages
         var textDivReceive = $("#" + to + "-" + from);
         textDivReceive.scrollTop(textDivReceive.prop('scrollHeight'));
       })
       socket.on("serverSendMsg", (from, msg, id) => {
         console.log(msg);
-        $("#" + id).append('<p>' + from + ': ' + msg + '</p>');
+        $("#" + id).append('<div style="margin: 1px;display: flex;flex-direction: row-reverse"><div style="flex-direction: column;background: #75a3ef;color:white;border-radius: 12px;padding: 0 10px 0 10px;">'+ msg + '</div></div>');
       });
       socket.on("receiveSendMsg", (from, msg, to) => {
         let id = to + "-" + from;
         if(listQueue.indexOf(id) >= 0){
           $("#li" + id).css("background-color", "red");
         }
-        $("#" + id).append('<p>' + from + ': ' + msg + '</p>');
+        $("#" + id).append('<div style="margin: 1px;display: flex;flex-direction: row">' + from + ' <div style="flex-direction: column;background: #d5dce8;border-radius: 12px;padding: 0 10px 0 10px;">'+ msg + '</div></div>');
       })
       $("#queueBtn").click(() => {
         $("#boxQueue").fadeToggle();
@@ -199,8 +204,9 @@
       color: #4286f4;
       cursor: pointer;
       font-weight: bold;
+      background-color: #d7dfed;
     }
-    #queue{
+    #queue{#c3cbd8;
       width: 100px;
       float: right;
       display: none;

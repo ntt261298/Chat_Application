@@ -1,6 +1,5 @@
 var Sequelize = require('sequelize');
 var pg = require('pg');
-var config = require('./dbURL.js');
 var db = new Sequelize({
     database: 'dfgtf76u6b4iji',
     username:'tmfhqkwzddbsit',
