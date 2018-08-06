@@ -1,0 +1,163 @@
+#greeting{
+  float: right;
+}
+.user{
+  border: 1px solid black;
+  height: 200px;
+  overflow-y:auto;
+  padding: 0px;
+}
+#user{
+  height: 200px;
+}
+#userHeader{
+  margin-top: 0;
+  background: blue;
+  color: #fff;
+  padding: 5px;
+  margin-bottom: 0px;;
+}
+.chatToAll{
+  margin-top: 15px;
+  background-color: #dbd2db;
+}
+.input{
+  margin-top: 15px;
+  margin-bottom: 10px;
+}
+.type{
+  width: 100%;
+}
+.send{
+  width: 100px;
+  padding: 0px;
+  height: 32px;
+}
+li{
+  list-style-type: none;
+  height: 30px;
+  padding: 5px 0px 5px 10px;
+}
+li:hover{
+  color: #4286f4;
+  cursor: pointer;
+  font-weight: bold;
+  background-color: #d7dfed;
+}
+#queue{#c3cbd8;
+  width: 100px;
+  float: right;
+  display: none;
+  max-height: 200px;
+}
+#boxQueue{
+  width: 100px;
+  min-height: 50px;
+  max-height: 200px;
+  border: 0.5px solid #bdc7de;
+  display: none;
+}
+#queueBtn:hover{
+  cursor: pointer;
+}
+.toImpress:hover{
+  color: #4286f4;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+
+.call:hover{
+    cursor: pointer;
+}
+#localStream{
+  width: 150px;
+  height: 125px;
+}
+#remoteStream{
+  width: 600px;
+  height: 500px;
+}
+#incall{
+  display: inline-block;
+  position: relative;
+  width: 800px;
+  height: 500px;
+  border: 1px solid black;
+  background:#32333c;
+  z-index: 1;
+}
+#out{
+  position: absolute;
+  width: 100%;
+  text-align: center;
+  margin-top: 100px;
+  display: none;
+}
+#localStream{
+  position: absolute;
+  bottom: 0px;
+  right: 0px;
+}
+.callBtn{
+  display: none;
+  width: 50px;
+  height: 50px;
+  border-radius: 100%;
+  position: absolute;
+  bottom: 0px;
+}
+#respondCall{
+  background: #2051e3;
+  left: 40%;
+}
+#rejectCall{
+  background: #e41616;
+  left: 54%;
+}
+#endCall{
+  background: #e41616;
+  left: 47%;
+}
+#calling{
+  display: none;
+  position: relative;
+}
+.circle{
+  width: 7px;
+  height: 7px;
+  border-radius: 100%;
+  background: #1ec22e;
+  float: right;
+  margin: 5px 5px 0px 2px;
+}
+.fa-paper-plane{
+  margin-left: 10px;
+}
+.fa-paper-plane:hover{
+  color: #6b686e;
+}
+/* Responsive */
+@media only screen and (max-width: 400px) {
+  #incall{
+    width: 100%;
+    height: 300px;
+    border: none;
+  }
+  #localStream{
+    width: 30%;
+    height: 30%;
+  }
+  #remoteStream{
+    width: 100%;
+    height: 273px;
+  }
+  .callBtn{
+    display: none;
+    width: 30px;
+    height: 30px;
+    border-radius: 100%;
+    position: absolute;
+    bottom: 0px;
+  }
+}

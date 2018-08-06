@@ -28,6 +28,9 @@ module.exports = function(app, passport) {
   app.get('/logout', function(req, res){
     req.logout();
     res.redirect('/login');
+  });
+  app.get('/incall', isLoggedIn, function(req, res){
+    res.render('incall');
   })
   function isLoggedIn(req, res, next){
     if (req.isAuthenticated())

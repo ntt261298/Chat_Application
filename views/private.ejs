@@ -7,18 +7,80 @@
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
   <link rel="shortcut icon" HREF="favicon.ico">
   <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.1.0/css/all.css" integrity="sha384-lKuwvrZot6UHsBSfcMvOkWwlCMgc0TaWr+30HWe3a4ltaBwTZhyTEggF5tJv8tbt" crossorigin="anonymous">
+  <link rel="stylesheet" href="stylePrivate.css">
   <script src="/socket.io/socket.io.js"></script>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/0.3.9/peer.min.js"></script>
+  <script src="video.js"></script>
   <script>
-    var socket = io("https://ntt261298.herokuapp.com");
+    //var socket = io("https://ntt261298.herokuapp.com");
+    var socket = io("localhost:8080");
     var from = "<%= user.username %>";
     var listFrameChat = [];
     var partnerList = [];
     var listQueue = [];
     var count = 0;
+    var localStream, remoteStream;
+    peer = new Peer({
+      config: {
+        "urls": [
+        "turn:13.250.13.83:3478?transport=udp"
+        ],
+        "username": "YzYNCouZM1mhqhmseWk6",
+        "credential": "YzYNCouZM1mhqhmseWk6"
+      }
+    });
 
-    socket.emit("clientSendUser", from);
+    peer.on("open", peerID => {
+      socket.emit("clientSendUser", from, peerID);
+    });
+    // Answer
+    peer.on('call', call => {
+      $("#calling").text(`${call.metadata} is calling...`);
+      $("#calling").css("display", "block");
+      $("#respondCall").css("display", "block");
+      $("#rejectCall").css("display", "block");
+      $("#rejectCall, #closeCall, #logout").on("click", e => {
+        if(localStream){
+          socket.emit("updateInCall",  from, call.metadata);
+          call.close();
+        }
+        else{
+          socket.emit("endCall", from, call.metadata);
+          call.close();
+          $("#out").css("display", "none");
+        }
+      })
+      $("#respondCall").on("click", (e) => {
+        $("#calling").css("display", "none");
+        $("#respondCall").css("display", "none");
+        $("#rejectCall").css("display", "none");
+        $("#endCall").css("display", "block");
+        openStream()
+        .then(stream => {
+          console.log(stream);
+          call.answer(stream);
+          playStream('localStream', stream);
+          window.localStream = stream;
+          call.on('stream', function(remoteStream) {
+            playStream('remoteStream', remoteStream);
+            console.log(remoteStream);
+            remoteStream = remoteStream;
+          })
+        })
+      })
+      $("#endCall").on('click', () => {
+        call.close();
+      });
+      call.on('close', () => {
+        $("#endCall").css("display", "none");
+        closeStream('localStream');
+        socket.emit("updateInCall", from, call.metadata);
+        $("#out").css("display", "none");
+        alert('Call ended');
+      })
+    });
     socket.on("serverSendPublicMsg", (msg) => {
       $("#frame").append('<div style="margin: 1px;display: flex;flex-direction: row">' + msg.from + ': ' + '<div style="flex-direction: column;background: #75a3ef;color:white;border-radius: 12px;padding: 0 10px 0 10px;">'+ msg.msg + '</div></div>');
     })
@@ -26,7 +88,7 @@
     socket.on("serverSendListUser", listUsers => {
       $("#users").html("");
       for(var i = 0; i < listUsers.length; i++){
-        $("#users").append('<li id="' + listUsers[i] +'">' + listUsers[i] + '</li>');
+        $("#users").append('<li id="' + listUsers[i] +'">' + listUsers[i] + '<div class="circle"></div></li>');
         //Scrolling messages
         var textDivUser = $("#users");
         textDivUser.scrollTop(textDivUser.prop('scrollHeight'));
@@ -34,12 +96,13 @@
         $("#" + listUsers[i]).click(() => {
           let partner = y.text();
           if(partner == from) return;
-          console.log(partner);
           if(!($("#" + from + "-" + partner).length)){
+            var max;
             var containerWidth = $('.container').width();
             var userFrame = $('.user').width();
             var maxFrameChat = (containerWidth - userFrame-100)/225;
-            var max = maxFrameChat;
+            if(containerWidth < 400) max = 1;
+            else max = maxFrameChat;
             socket.emit("newFrame", from, partner, max);
           }
         })
@@ -65,7 +128,6 @@
       // Display list of frame chat inbox
       socket.on("listFrameChat", (from, partner, func, max) => {
         var id = from + "-" + partner;
-        console.log(func);
         if((listFrameChat.indexOf(id) >= 0) && (func == "push")) return;
         if(func == "close"){
           listFrameChat.splice(listFrameChat.indexOf(id), 1);
@@ -105,12 +167,16 @@
           $("#frameInbox").append(function(){
             return "<div style='width: 225px;height: 200px;border: 1px solid black;float: left;margin-right: 10px;'>" +
                       "<div style='height: 30px;border-bottom: 1px solid black;background-color: #75a3ef; color: white;'>"+
-                        "<span><strong>"+ partnerList[i] +"</strong></span>" +
-                        "<button type='button' class='close' aria-label='Close' style='height: 27px;'>"+
+                        "<span style='margin-left: 5px;'><strong>"+ partnerList[i] +"</strong></span>" +
+                        "<button type='button' class='close' aria-label='Close' style='width: 35px;height: 27px;float:right'>"+
                         "<span id='close" + listFrameChat[i] + "' aria-hidden='true'>&times;</span></button>"+
+                        "<button class='call' id='call"+ listFrameChat[i] +"' type='button' name='button' style='float:right !important;border:none;height:30px;background: transparent;'>" +
+                            "<i class='fas fa-video'><div class='circle' id='circle" + listFrameChat[i] + "'></div></i>"+
+                        "</button>"+
                       "</div>"+
                       "<div style='overflow-y:auto;height: 138px;border-bottom: 1px solid black;' id='"+ listFrameChat[i] +"'></div>"+
-                      "<div><input id='msg" + listFrameChat[i]+ "' type='text' name='content' autocomplete='off' placeholder='text here'></div></div>"
+                      "<div><input id='msg" + listFrameChat[i]+ "' type='text' name='content' autocomplete='off' placeholder='text here'>" +
+                      "<i class='fa fa-paper-plane' aria-hidden='true'></i></div></div>"
           })
           // Display message in database
           socket.emit("clientNeedMessage", from, listFrameChat[i]);
@@ -118,7 +184,6 @@
             var keycode = (event.keyCode ? event.keyCode : event.which);
             if(keycode == '13'){
               var newMessage = $("#msg" + listFrameChat[i]).val();
-              console.log(newMessage);
               if(newMessage != ''){
                 socket.emit("chatInbox", from, partnerList[i], listFrameChat[i], newMessage);
               }
@@ -126,7 +191,18 @@
               event.preventDefault();//Prevents the default action from happening.
             }
           })
-
+          $(".fa-paper-plane").click(() => {
+            var newMessage = $("#msg" + listFrameChat[i]).val();
+            if(newMessage != ''){
+              socket.emit("chatInbox", from, partnerList[i], listFrameChat[i], newMessage);
+            }
+            $("#msg" + listFrameChat[i]).val("");//The text in the input is overwritten to nothing.
+            event.preventDefault();//Prevents the default action from happening.
+          })
+          $("#call" + listFrameChat[i]).click(() => {
+            socket.emit("newCall", from, partnerList[i]);
+            //$("#out").css("display", "block");
+          })
         }
         for(let i = 0; i < count; i++){
           $("#close" + listFrameChat[i]).click(() => {
@@ -136,7 +212,6 @@
         }
       })
       socket.on("serverSendPrivateMsg", (from, to, msg, id) => {
-        console.log(id);
         if(from == "<%= user.username %>"){
           $("#" + id).append('<div style="margin: 1px;display: flex;flex-direction: row-reverse"><div style="flex-direction: column;background: #75a3ef;color:white;border-radius: 12px;padding: 0 10px 0 10px;">'+ msg + '</div></div>');
           $("#" + to + "-" + from).append('<div style="margin:1px;display: flex;flex-direction: row-reverse"><div style="flex-direction: column;background: #75a3ef;color:white;border-radius: 12px;padding: 0 10px 0 10px;">'+ msg + '</div></div>');
@@ -161,6 +236,75 @@
           $("#li" + id).css("background-color", "red");
         }
         $("#" + id).append('<div style="margin: 1px;display: flex;flex-direction: row">' + from + ' <div style="flex-direction: column;background: #d5dce8;border-radius: 12px;padding: 0 10px 0 10px;">'+ msg + '</div></div>');
+      });
+      socket.on("displayVideo", () => {
+        $("#out").css("display", "block");
+
+      })
+      socket.on("serverSendPeerId", (partner, peerID) => {
+        $("#endCall").css("display", "block");
+        $("#calling").text("Calling "+partner+"...");
+        $("#calling").css("display", "block");
+          // Call
+          openStream().
+          then(stream => {
+            console.log(stream);
+            playStream('localStream', stream);
+            window.localStream = stream;
+            const call = peer.call(peerID, stream, {metadata: "<%= user.username %>"});
+            call.on('stream', function(remoteStream) {
+              playStream('remoteStream', remoteStream);
+              remoteStream = remoteStream;
+              console.log(remoteStream);
+              $("#calling").css("display", "none");
+            });
+            call.on('close', () => {
+              $("#endCall").css("display", "none");
+              closeStream('localStream');
+              $("#out").css("display", "none");
+              alert(`Call ended`);
+            });
+            socket.on("closeStream", (from) => {
+              call.close();
+              socket.emit("updateInCall", from, call.metadata);
+              closeStream('localStream');
+              alert(`${from} declined your call`);
+              $("#out").css("display", "none");
+            })
+            // Button endCall event
+            $("#endCall, #closeCall, #logout").on('click', () => {
+              // If in call
+              if(remoteStream){
+                socket.emit("updateInCall", from, call.metadata);
+                call.close();
+              }
+              // If other peer doesn't accept
+              else{
+                call.close();
+                $("#endCall").css("display", "none");
+                closeStream('localStream');
+                $("#out").css("display", "none");
+                socket.emit("closeCall", from, partner);
+              }
+            });
+          })
+      })
+      socket.on("hideOut", () => {
+        $("#out").css("display", "none");
+      })
+      socket.on("statusListCall", (listInCall, max) => {
+        for(let i = (count-1); (i >= (count - max)) && (i>=0); i--){
+          let index = listInCall.indexOf(partnerList[i]);
+          console.dir(listInCall);
+          console.log(index);
+          if(index >= 0) {
+            $("#circle" + listFrameChat[i]).css("background", "red");
+          }
+          else {
+            $("#circle" + listFrameChat[i]).css("background", "#1ec22e");
+            // $("#call" + listFrameChat[i]).prop("disabled", false);
+          }
+        }
       })
       $("#queueBtn").click(() => {
         $("#boxQueue").fadeToggle();
@@ -168,68 +312,27 @@
     })
   </script>
   <title>Private</title>
-  <style>
-    #greeting{
-      float: right;
-    }
-    .user{
-      border: 1px solid black;
-      height: 200px;
-      overflow-y:auto;
-    }
-    #user{
-      height: 200px;
-    }
-    .chatToAll{
-      margin-top: 15px;
-      background-color: #dbd2db;
-    }
-    .input{
-      margin-top: 15px;
-      margin-bottom: 10px;
-    }
-    .type{
-      width: 100%;
-    }
-    .send{
-      width: 100px;
-      padding: 0px;
-      height: 32px;
-    }
-    li{
-      list-style-type: none;
-      height: 30px;
-    }
-    li:hover{
-      color: #4286f4;
-      cursor: pointer;
-      font-weight: bold;
-      background-color: #d7dfed;
-    }
-    #queue{#c3cbd8;
-      width: 100px;
-      float: right;
-      display: none;
-      max-height: 200px;
-    }
-    #boxQueue{
-      width: 100px;
-      min-height: 50px;
-      max-height: 200px;
-      border: 0.5px solid #bdc7de;
-      display: none;
-    }
-    #queueBtn:hover{
-      cursor: pointer;
-    }
-    .toImpress:hover{
-      color: #4286f4;
-      cursor: pointer;
-      font-weight: bold;
-    }
-  </style>
 </head>
 <body>
+  <div id="out">
+    <div id="incall">
+      <button type='button' class='close' aria-label='Close' style='width: 35px;height: 27px;float:right'>
+        <span id='closeCall' aria-hidden='true'>&times;</span>
+      </button>
+      <video id="localStream" autoplay></video>
+      <video id="remoteStream" autoplay></video>
+      <p id="calling"></p>
+      <button class="callBtn" id="respondCall">
+        <i class="fa fa-phone"></i>
+      </button>
+      <button class="callBtn" id="endCall">
+        <i class="fa fa-phone-slash"></i>
+      </button>
+      <button class="callBtn" id="rejectCall">
+        <i class="fa fa-phone-slash"></i>
+      </button>
+    </div>
+  </div>
   <div class="container">
     <div class="text-center">
       <h1>Welcome to my Chat box</h1>
@@ -245,24 +348,11 @@
     </div>
     <div class="row">
       <div class="user col-4 col-md-3">
-        <p><strong>Users online</strong></p>
+        <p id="userHeader"><strong>Users online</strong></p>
         <div id="users"></div>
       </div>
       <div class="col-8 col-md-9">
         <div id="frameInbox"></div>
-        <!-- <% for(var i = 0; i < 1; i++){%>
-          <div class="roomChat">
-            <div id="roomID">
-              <button type="button" class="close" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-              </button>
-            </div>
-            <div id="inbox"></div>
-            <div>
-              <input type="text" name="content" autocomplete="off" placeholder="text here">
-            </div>
-          </div>
-        <%}%> -->
         <div id="queue">
           <div>
             <button type="button" name="button" id="queueBtn">
