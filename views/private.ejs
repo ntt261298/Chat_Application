@@ -23,6 +23,10 @@
     var count = 0;
     var localStream, remoteStream;
     peer = new Peer({
+      key: 'peerjs',
+      host: 'chatapppeer.herokuapp.com',
+      secure: true,
+      port: 443,
       config: {
         "urls": [
         "turn:13.250.13.83:3478?transport=udp"
