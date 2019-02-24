@@ -20,7 +20,9 @@ module.exports = function(io){
     removeSocket: function(name, peerID) {
       if (this.sockets[name] !== undefined) {
         this.sockets[name] = null;
+        this.sockets[peerID] = null;
         delete this.sockets[name];
+        delete this.sockets[peerID];
       }
     },
 
